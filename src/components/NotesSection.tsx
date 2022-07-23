@@ -1,15 +1,20 @@
 import React, { useState } from 'react'
+
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+import Divider from '@mui/material/Divider'
+import Stack from '@mui/material/Stack'
+import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box'
 
 import 'react-piano/dist/styles.css';
 const { Piano, MidiNumbers } = require('react-piano');
 
 const noteRange = {
   first: MidiNumbers.fromNote('c3'),
-  last: MidiNumbers.fromNote('f5'),
+  last: MidiNumbers.fromNote('e5'),
 }
 
 export default function NotesSection() {
@@ -17,13 +22,20 @@ export default function NotesSection() {
   const [selectedNotes, setSelectedNotes] = useState<string[]>([]);
 
   const handleSelectionChanged = (selectedNotes: string[]) => {
-    console.log(selectedNotes);
+    setSelectedNotes(selectedNotes);
   }
 
   return (
     <Card>
       <CardContent>
-        <Box height={100}>
+        <Typography variant='h3'>
+          Notes
+        </Typography>
+        <Divider orientation='horizontal' />
+        <Stack height={60} direction='row' alignItems='center'>
+          <Typography variant='subtitle1'>
+            candidates
+          </Typography>
           <Piano
             enableSelection
             playNote={() => null}
@@ -31,13 +43,10 @@ export default function NotesSection() {
             noteRange={noteRange}
             onSelectionChanged={handleSelectionChanged}
             selectedNotes={selectedNotes} />
-        </Box>
-        <Typography variant='h3'>
-          title
-        </Typography>
-        <Typography variant='body1'>
-          Lorem ipsum dolor sit, amet consectetur adipisicing elit. Distinctio consequuntur quisquam voluptates, numquam aut dolorem soluta facilis culpa? Praesentium perferendis labore autem quisquam? Accusantium quaerat suscipit eligendi deleniti porro excepturi ratione impedit vel hic commodi, eaque reiciendis magni? Alias aspernatur quisquam exercitationem sit omnis odit numquam praesentium velit laborum nemo?
-        </Typography>
+        </Stack>
+        <TextField type='number' label='Amount' />
+        <Divider orientation='horizontal' />
+        <Button variant='contained' size='large'>Generate</Button>
 
       </CardContent>
     </Card>
