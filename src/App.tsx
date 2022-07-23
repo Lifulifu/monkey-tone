@@ -1,7 +1,9 @@
 import React from 'react';
 import './App.css';
 import Navbar from './components/Navbar'
+
 import Container from '@mui/material/Container';
+import Grid from '@mui/material/Grid';
 import { colors, createTheme, ThemeProvider } from '@mui/material';
 
 import NotesSection from './components/NotesSection';
@@ -9,8 +11,8 @@ import NotesSection from './components/NotesSection';
 const theme = createTheme({
   palette: {
     primary: {
-      main: colors.orange[400]
-    }
+      main: '#383B53'
+    },
   }
 })
 
