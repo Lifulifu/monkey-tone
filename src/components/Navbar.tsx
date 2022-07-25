@@ -13,12 +13,20 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 
 import { GiHamburgerMenu } from 'react-icons/gi';
+import { AiFillSliders } from 'react-icons/ai'
 import { TbArrowsShuffle } from 'react-icons/tb'
+import { FaDrum } from 'react-icons/fa'
+import { GiGClef } from 'react-icons/gi'
+import { ListItemIcon } from '@mui/material';
 
 
 
 const drawerWidth = 240;
-const navItems = ['Notes', 'Beats', 'Chords'];
+const navItems = [
+  { text: 'Notes', icon: <GiGClef size={20} /> },
+  { text: 'Beats', icon: <FaDrum size={20} /> },
+  { text: 'Chords', icon: <AiFillSliders size={20} /> }
+];
 
 export default function DrawerAppBar() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -35,9 +43,12 @@ export default function DrawerAppBar() {
       <Divider />
       <List>
         {navItems.map((item) => (
-          <ListItem key={item} disablePadding>
-            <ListItemButton sx={{ textAlign: 'center' }}>
-              <ListItemText primary={item} />
+          <ListItem key={item.text} disablePadding>
+            <ListItemButton>
+              <ListItemIcon>
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText primary={item.text} />
             </ListItemButton>
           </ListItem>
         ))}
@@ -49,7 +60,6 @@ export default function DrawerAppBar() {
     <Box sx={{ display: 'flex' }}>
       <AppBar component="nav" elevation={0}>
         <Toolbar>
-
           <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -74,8 +84,9 @@ export default function DrawerAppBar() {
 
           <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
             {navItems.map((item) => (
-              <Button key={item} sx={{ color: '#fff' }}>
-                {item}
+              <Button key={item.text}
+                startIcon={item.icon} sx={{ color: '#fff' }} >
+                {item.text}
               </Button>
             ))}
           </Box>
@@ -98,9 +109,7 @@ export default function DrawerAppBar() {
           {drawer}
         </Drawer>
       </Box>
-      <Box component="main" sx={{ p: 3 }}>
-        <Toolbar />
-      </Box>
+      <Toolbar />
     </Box>
   );
 }

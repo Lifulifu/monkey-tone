@@ -21,7 +21,7 @@ function App() {
     <ThemeProvider theme={theme}>
       <div className="App">
         <Navbar />
-        <Container maxWidth='md'>
+        <Container sx={{ py: '2em' }} maxWidth='md'>
           <NotesSection />
         </Container>
       </div>
