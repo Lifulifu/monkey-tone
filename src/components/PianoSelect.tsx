@@ -1,16 +1,15 @@
 import React from 'react'
 
 import 'react-piano/dist/styles.css';
-const { Piano, MidiNumbers } = require('react-piano');
+const { Piano } = require('react-piano');
 
-const noteRange = {
-  first: MidiNumbers.fromNote('c3'),
-  last: MidiNumbers.fromNote('e5'),
-}
 
 interface Props {
   onSelectionChanged?: (selectedNotes: number[]) => any,
   selectedNotes?: number[];
+  noteRange: {
+    first: number, last: number
+  }
 }
 
 export default function PianoSelect(props: Props) {
@@ -19,7 +18,7 @@ export default function PianoSelect(props: Props) {
       enableSelection
       playNote={() => null}
       stopNote={() => null}
-      noteRange={noteRange}
+      noteRange={props.noteRange}
       onSelectionChanged={props.onSelectionChanged}
       selectedNotes={props.selectedNotes} />
   )

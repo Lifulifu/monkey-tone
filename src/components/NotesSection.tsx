@@ -12,7 +12,6 @@ import Autocomplete from '@mui/material/Autocomplete';
 import Alert, { AlertColor } from '@mui/material/Alert';
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import ButtonGroup from '@mui/material/ButtonGroup';
 import Checkbox from '@mui/material/Checkbox';
 import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -31,6 +30,8 @@ import { AiTwotoneSetting } from 'react-icons/ai'
 import { BsFillDice5Fill } from 'react-icons/bs'
 import { GiGClef } from 'react-icons/gi'
 import { MdExpandMore } from 'react-icons/md'
+
+const { MidiNumbers } = require('react-piano');
 
 interface ResultItem {
   id: string,
@@ -52,6 +53,8 @@ const Accordion = styled((props: AccordionProps) => (
   borderTop: `1px solid ${theme.palette.divider}`,
 }));
 
+const PIANO_SELECT_MIN = MidiNumbers.fromNote('c4');
+const PIANO_SELECT_MAX = MidiNumbers.fromNote('e6');
 
 export default function NotesSection() {
 
@@ -70,7 +73,7 @@ export default function NotesSection() {
   }
 
   const handleNoteSelectionChangedAll = (event: React.SyntheticEvent<Element, Event>, checked: boolean) => {
-    if (checked) setNoteCandidates(MidiUtils.getAllMidiNumbers());
+    if (checked) setNoteCandidates(MidiUtils.getMidiRange(PIANO_SELECT_MIN, PIANO_SELECT_MAX));
     else setNoteCandidates([]);
   }
 
@@ -139,6 +142,10 @@ export default function NotesSection() {
               </Grid>
               <Grid item xs={12} height='4em'>
                 <PianoSelect
+                  noteRange={{
+                    first: PIANO_SELECT_MIN,
+                    last: PIANO_SELECT_MAX
+                  }}
                   selectedNotes={noteCandidates}
                   onSelectionChanged={handleNoteSelectionChangedManual} />
               </Grid>

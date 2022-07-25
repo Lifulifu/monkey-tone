@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react'
 
 import Box from '@mui/material/Box'
+import ListItem from '@mui/material/ListItem'
 import Score from './Score'
 
 interface Props {
@@ -8,10 +9,9 @@ interface Props {
 }
 
 export default function ResultListItem({ notes }: Props) {
-  console.log('ResultListItem')
   return (
-    <Box>
-      <Score notes={notes.map(() => 'aa')} />
-    </Box>
+    <ListItem sx={{ overflowX: 'auto' }}>
+      <Score height={150} notes={notes} />
+    </ListItem>
   )
 }
