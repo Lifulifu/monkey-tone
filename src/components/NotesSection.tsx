@@ -1,11 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import PianoSelect from './PianoSelect';
-import ResultList from './ResultList';
+import ResultList, { ResultItem } from './ResultList';
 import ResultListItem from './ResultListItem';
 import { MidiUtils, cartesianProduct } from '../util';
 
-import { styled } from '@mui/material/styles';
-import MuiAccordion, { AccordionProps } from '@mui/material/Accordion';
+import Accordion from './CustomAccordion'
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Autocomplete from '@mui/material/Autocomplete';
@@ -13,9 +12,7 @@ import Alert, { AlertColor } from '@mui/material/Alert';
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Checkbox from '@mui/material/Checkbox';
-import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import RadioGroup from '@mui/material/RadioGroup';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack'
@@ -25,6 +22,7 @@ import Typography from '@mui/material/Typography'
 import useTheme from '@mui/material/styles/useTheme';
 import { v4 as getId } from 'uuid';
 import sample from 'lodash/sample';
+import Soundfont from 'soundfont-player';
 
 import { AiTwotoneSetting } from 'react-icons/ai'
 import { BsFillDice5Fill } from 'react-icons/bs'
@@ -33,31 +31,18 @@ import { MdExpandMore } from 'react-icons/md'
 
 const { MidiNumbers } = require('react-piano');
 
-interface ResultItem {
-  id: string,
-  notes: number[], // midi numbers
-}
 
 interface SnackbarContent {
   severity: AlertColor,
   text: string
 }
 
-const Accordion = styled((props: AccordionProps) => (
-  <MuiAccordion disableGutters elevation={0} square {...props} />
-))(({ theme }) => ({
-  '&:before': {
-    display: 'none',
-  },
-  borderBottom: `1px solid ${theme.palette.divider}`,
-  borderTop: `1px solid ${theme.palette.divider}`,
-}));
-
 const PIANO_SELECT_MIN = MidiNumbers.fromNote('c4');
 const PIANO_SELECT_MAX = MidiNumbers.fromNote('e6');
 // ['c', 'c#', 'd' ...] X ['major', 'minor', ...]
 const SCALE_OPTIONS = cartesianProduct(MidiUtils.PITCHES, Object.keys(MidiUtils.MODE_SEMITONE_STEPS))
   .map(([pitch, scaleType]) => ({ pitch, scaleType }))
+const SOUND_FONT = 'acoustic_grand_piano';
 
 export default function NotesSection() {
 
@@ -67,6 +52,14 @@ export default function NotesSection() {
   const [noteAmount, setNoteAmount] = useState<number>(8);
   const [noteCandidates, setNoteCandidates] = useState<number[]>([]);
   const [resultItems, setResultItems] = useState<ResultItem[]>([]);
+  const [audioContext, setAudioContext] = useState<AudioContext>(new AudioContext());
+  const [instrument, setInstrument] = useState<Soundfont.Player | null>(null);
+
+  useEffect(() => {
+    Soundfont.instrument(audioContext, SOUND_FONT).then(function (instrument) {
+      setInstrument(instrument);
+    })
+  }, [audioContext])
 
   const handleNoteSelectionChangedManual = (selectedNotes: number[]) => {
     setNoteCandidates(selectedNotes);
@@ -127,7 +120,7 @@ export default function NotesSection() {
           <AccordionSummary expandIcon={<MdExpandMore size={30} />}>
             <Stack direction='row' alignItems='center'>
               <AiTwotoneSetting />
-              <Typography variant='subtitle1' ml='0.5em'>Settings</Typography>
+              <Typography variant='subtitle1' ml='0.5em'>Generate Settings</Typography>
             </Stack>
           </AccordionSummary>
           <AccordionDetails>
@@ -140,7 +133,7 @@ export default function NotesSection() {
                 <Autocomplete options={
                   SCALE_OPTIONS.map(({ pitch, scaleType }) => `${pitch.toUpperCase()} ${scaleType}`)}
                   onChange={handleNoteSelectionChangedScale} renderInput={(params) =>
-                    <TextField {...params} label='Modes' />
+                    <TextField {...params} label='Scale' />
                   } />
               </Grid>
               <Grid item xs={12} md={6}>
@@ -171,13 +164,8 @@ export default function NotesSection() {
       {/* result section */}
       {
         resultItems.length > 0 &&
-        <ResultList>
-          {
-            resultItems.map((item) => (
-              <ResultListItem key={item.id} notes={item.notes} />
-            ))
-          }
-        </ResultList>
+        <ResultList items={resultItems}
+          audioContext={audioContext} instrument={instrument} />
       }
 
       {/* snackbar for info / warning / error */}

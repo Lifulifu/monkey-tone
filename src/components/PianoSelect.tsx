@@ -1,5 +1,6 @@
 import React from 'react'
 
+import Soundfont from 'soundfont-player'
 import 'react-piano/dist/styles.css';
 const { Piano } = require('react-piano');
 

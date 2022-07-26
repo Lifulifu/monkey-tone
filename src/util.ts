@@ -1,4 +1,3 @@
-import { GiWhirlwind } from 'react-icons/gi';
 import { Stave, StaveNote, Beam, Formatter, Renderer, Voice, Accidental } from 'vexflow'
 
 interface Pitch {
@@ -80,7 +79,6 @@ class ScoreUtils {
     container: HTMLDivElement,
     midiNums: number[],
     widthPerNote: number,
-    height: number,
     clef?: string
   ) {
     const MIN_SCORE_WIDTH = 100;

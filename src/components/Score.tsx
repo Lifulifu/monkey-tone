@@ -7,19 +7,18 @@ import { ScoreUtils } from '../util'
 
 interface ScoreProps {
   notes: number[],
-  height: number
   widthPerNote?: number,
   clef?: string,
 }
 
 export default function Score({
-  notes = [], clef, widthPerNote = 40, height }: ScoreProps) {
+  notes = [], clef, widthPerNote = 40 }: ScoreProps) {
 
   const container = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     console.log('score render')
-    ScoreUtils.renderScore(container.current!, notes, widthPerNote, height, clef);
+    ScoreUtils.renderScore(container.current!, notes, widthPerNote, clef);
     return () => {  // clear all svgs
       container.current!.innerHTML = '';
     }
