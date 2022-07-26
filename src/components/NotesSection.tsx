@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import PianoSelect from './PianoSelect';
 import ResultList from './ResultList';
 import ResultListItem from './ResultListItem';
-import { MidiUtils } from '../util';
+import { MidiUtils, cartesianProduct } from '../util';
 
 import { styled } from '@mui/material/styles';
 import MuiAccordion, { AccordionProps } from '@mui/material/Accordion';
@@ -55,6 +55,9 @@ const Accordion = styled((props: AccordionProps) => (
 
 const PIANO_SELECT_MIN = MidiNumbers.fromNote('c4');
 const PIANO_SELECT_MAX = MidiNumbers.fromNote('e6');
+// ['c', 'c#', 'd' ...] X ['major', 'minor', ...]
+const SCALE_OPTIONS = cartesianProduct(MidiUtils.PITCHES, Object.keys(MidiUtils.MODE_SEMITONE_STEPS))
+  .map(([pitch, scaleType]) => ({ pitch, scaleType }))
 
 export default function NotesSection() {
 
@@ -68,8 +71,12 @@ export default function NotesSection() {
   const handleNoteSelectionChangedManual = (selectedNotes: number[]) => {
     setNoteCandidates(selectedNotes);
   }
-  const handleNoteSelectionChangedMode = (e: React.SyntheticEvent<Element, Event>, value: string | null) => {
-    setNoteCandidates(MidiUtils.modeToMidiNumbers(value ? value : ''));
+  const handleNoteSelectionChangedScale = (e: React.SyntheticEvent<Element, Event>, value: string | null) => {
+    if (!value) return
+    const [pitch, scale] = value.split(' ')
+    const result = MidiUtils.scaleToMidiNumbers(pitch, scale);
+    if (result)
+      setNoteCandidates(MidiUtils.clipMidiRange(result, PIANO_SELECT_MIN, PIANO_SELECT_MAX));
   }
 
   const handleNoteSelectionChangedAll = (event: React.SyntheticEvent<Element, Event>, checked: boolean) => {
@@ -130,8 +137,9 @@ export default function NotesSection() {
                   value={noteAmount} onChange={handleNoteAmountChanged} />
               </Grid>
               <Grid item xs={12} md={3}>
-                <Autocomplete options={['C major', 'C minor']}
-                  onChange={handleNoteSelectionChangedMode} renderInput={(params) =>
+                <Autocomplete options={
+                  SCALE_OPTIONS.map(({ pitch, scaleType }) => `${pitch.toUpperCase()} ${scaleType}`)}
+                  onChange={handleNoteSelectionChangedScale} renderInput={(params) =>
                     <TextField {...params} label='Modes' />
                   } />
               </Grid>

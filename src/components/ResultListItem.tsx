@@ -11,7 +11,7 @@ interface Props {
 export default function ResultListItem({ notes }: Props) {
   return (
     <ListItem sx={{ overflowX: 'auto' }}>
-      <Score height={150} notes={notes} />
+      <Score height={150} notes={notes} clef={'treble'} />
     </ListItem>
   )
 }
