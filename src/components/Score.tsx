@@ -19,7 +19,8 @@ export default function Score({
   useEffect(() => {
     ScoreUtils.renderScore(container.current!, notes, widthPerNote, clef);
     return () => {  // clear all svgs
-      container.current!.innerHTML = '';
+      if (container.current)
+        container.current!.innerHTML = '';
     }
   }, [])
 

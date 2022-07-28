@@ -10,15 +10,14 @@ import Score from './Score'
 
 interface Props {
   notes: number[],
-  playNotes: (notes: number[], callback: Function) => void
+  isPlaying: boolean,
+  onPlayStart: Function,
 }
 
-export default function ResultListItem({ notes, playNotes }: Props) {
+export default function ResultListItem({ notes, isPlaying, onPlayStart }: Props) {
 
-  const [isPlaying, setIsPlaying] = useState(false);
   const handlePlayButtonClicked = () => {
-    playNotes(notes, () => setIsPlaying(false));
-    setIsPlaying(true);
+    onPlayStart();
   }
 
   return (

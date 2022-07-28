@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './App.css';
 import Navbar from './components/Navbar'
 
@@ -17,6 +17,11 @@ const theme = createTheme({
 })
 
 function App() {
+
+  useEffect(() => {
+    document.title = 'Monkey Tone';
+  }, [])
+
   return (
     <ThemeProvider theme={theme}>
       <div className="App">

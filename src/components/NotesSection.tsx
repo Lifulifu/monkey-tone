@@ -28,11 +28,9 @@ import Typography from '@mui/material/Typography'
 import useTheme from '@mui/material/styles/useTheme';
 import { AiTwotoneSetting } from 'react-icons/ai'
 import { BsFillDice5Fill } from 'react-icons/bs'
-import { GiGClef } from 'react-icons/gi'
 import { MdExpandMore, MdVolumeUp } from 'react-icons/md'
 
 const { MidiNumbers } = require('react-piano');
-
 
 interface SnackbarContent {
   severity: AlertColor,
@@ -41,7 +39,8 @@ interface SnackbarContent {
 
 interface ResultItem {
   id: string,
-  notes: number[]
+  notes: number[],
+  isPlaying: boolean
 }
 
 const PIANO_SELECT_MIN = MidiNumbers.fromNote('c4');
@@ -56,7 +55,6 @@ const DEFAULT_INSTRUMENT_NAME: Soundfont.InstrumentName = 'acoustic_grand_piano'
 export default function NotesSection() {
 
   const { instrument, setInstrumentName, setGain } = useContext(InstrumentContext);
-  const theme = useTheme();
   const [openSnackbar, setOpenSnackbar] = useState<boolean>(false);
   const [snackbarContent, setSnackbarContent] = useState<SnackbarContent>({ severity: 'warning', text: '' });
   const [resultItems, setResultItems] = useState<ResultItem[]>([]);
@@ -67,6 +65,7 @@ export default function NotesSection() {
 
   // -- playback --
   const [bpm, setBpm] = useState(DEFAULT_BPM);
+  const playEndCallbackTimer = useRef<number>(0);
   const playNotes = (notes: number[], callback?: Function) => {
     if (!instrument) return;
     instrument.stop();
@@ -79,8 +78,21 @@ export default function NotesSection() {
       }))
     )
     if (callback) {
-      setTimeout(callback, 1000 * notes.length * noteDuration)
+      playEndCallbackTimer.current = setTimeout(callback, 1000 * notes.length * noteDuration)
     }
+  }
+  const setItemIsPlaying = (targetId: string) => {
+    setResultItems((resultItems) => resultItems.map(({ id, isPlaying, ...rest }) => {
+      if (id === targetId)
+        return { id, isPlaying: true, ...rest };
+      else
+        return { id, isPlaying: false, ...rest };
+    }))
+  }
+  const setItemsIsPlayingFalse = () => {
+    setResultItems((resultItems) => resultItems.map(({ id, isPlaying, ...rest }) => {
+      return { id, isPlaying: false, ...rest }
+    }))
   }
 
   // -- handlers --
@@ -96,7 +108,7 @@ export default function NotesSection() {
       setNoteCandidates(MidiUtils.clipMidiRange(result, PIANO_SELECT_MIN, PIANO_SELECT_MAX));
   }
 
-  const handleNoteSelectionChangedAll = (event: React.SyntheticEvent<Element, Event>, checked: boolean) => {
+  const handleNoteSelectionChangedAll = (e: React.SyntheticEvent<Element, Event>, checked: boolean) => {
     if (checked) setNoteCandidates(MidiUtils.getMidiRange(PIANO_SELECT_MIN, PIANO_SELECT_MAX));
     else setNoteCandidates([]);
   }
@@ -123,8 +135,14 @@ export default function NotesSection() {
       return;
     }
     const notes: number[] = new Array(noteAmount).fill(0).map(() => sample(noteCandidates)!);
-    setResultItems([{ id: getId(), notes }, ...resultItems]);  // front is newest
-    playNotes(notes);
+    const itemId = getId();
+
+    setResultItems([
+      { id: itemId, notes, isPlaying: true },  // newly added item, auto playback
+      ...resultItems.map(({ isPlaying, ...rest }) => ({ isPlaying: false, ...rest }))  // other items, stop playback
+    ]);
+    clearTimeout(playEndCallbackTimer.current);
+    playNotes(notes, setItemsIsPlayingFalse);
   }
 
   const handleBpmChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,20 +162,17 @@ export default function NotesSection() {
       setInstrumentName(value);
   }
 
+  const handleItemPlayStart = (id: string, notes: number[]) => {
+    setItemIsPlaying(id);
+    clearTimeout(playEndCallbackTimer.current);
+    playNotes(notes, setItemsIsPlayingFalse);
+  }
+
   return (
     <Stack direction='column' spacing='1em'>
 
       {/* config section */}
-      <Paper elevation={0}>
-        <Stack
-          py='1em'
-          direction='row' alignItems='center'
-          spacing={2} justifyContent='center' >
-          <GiGClef size={30} color={theme.palette.grey[700]} />
-          <Typography variant='h4' color={theme.palette.grey[700]}>
-            Notes
-          </Typography>
-        </Stack>
+      <Paper elevation={0} sx={{ overflow: 'hidden' }}>
         <Accordion defaultExpanded={true}>
           <AccordionSummary expandIcon={<MdExpandMore size={30} />}>
             <Stack direction='row' alignItems='center'>
@@ -250,7 +265,8 @@ export default function NotesSection() {
                 <ResultListItem
                   key={item.id}
                   notes={item.notes}
-                  playNotes={playNotes}
+                  onPlayStart={() => handleItemPlayStart(item.id, item.notes)}
+                  isPlaying={item.isPlaying}
                 />
               ))
             }

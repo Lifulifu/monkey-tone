@@ -14,7 +14,7 @@ import Button from '@mui/material/Button';
 
 import { GiHamburgerMenu } from 'react-icons/gi';
 import { AiFillSliders } from 'react-icons/ai'
-import { TbArrowsShuffle } from 'react-icons/tb'
+import { SiSurveymonkey } from 'react-icons/si'
 import { FaDrum } from 'react-icons/fa'
 import { GiGClef } from 'react-icons/gi'
 import { ListItemIcon } from '@mui/material';
@@ -73,7 +73,7 @@ export default function DrawerAppBar() {
           <IconButton
             color="inherit"
           >
-            <TbArrowsShuffle />
+            <SiSurveymonkey />
           </IconButton>
           <Typography
             variant="h6"
