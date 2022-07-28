@@ -17,7 +17,6 @@ export default function Score({
   const container = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    console.log('score render')
     ScoreUtils.renderScore(container.current!, notes, widthPerNote, clef);
     return () => {  // clear all svgs
       container.current!.innerHTML = '';

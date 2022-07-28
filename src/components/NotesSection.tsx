@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useContext } from 'react'
 import PianoSelect from './PianoSelect';
-import ResultList, { ResultItem } from './ResultList';
-import ResultListItem from './ResultListItem';
 import { MidiUtils, cartesianProduct } from '../util';
+import { InstrumentContext, audioContext } from './InstrumentProvider';
+import ResultListItem from './ResultListItem';
+import { v4 as getId } from 'uuid';
+import sample from 'lodash/sample';
+import Soundfont from 'soundfont-player';
+import { SOUNTFONT_INSTRUMENT_NAMES } from '../assets/constants'
 
 import Accordion from './CustomAccordion'
 import AccordionSummary from '@mui/material/AccordionSummary';
@@ -12,22 +16,20 @@ import Alert, { AlertColor } from '@mui/material/Alert';
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Checkbox from '@mui/material/Checkbox';
+import Divider from '@mui/material/Divider';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack'
+import Slider from '@mui/material/Slider'
 import Snackbar from '@mui/material/Snackbar';
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import useTheme from '@mui/material/styles/useTheme';
-import { v4 as getId } from 'uuid';
-import sample from 'lodash/sample';
-import Soundfont from 'soundfont-player';
-
 import { AiTwotoneSetting } from 'react-icons/ai'
 import { BsFillDice5Fill } from 'react-icons/bs'
 import { GiGClef } from 'react-icons/gi'
-import { MdExpandMore } from 'react-icons/md'
+import { MdExpandMore, MdVolumeUp } from 'react-icons/md'
 
 const { MidiNumbers } = require('react-piano');
 
@@ -37,33 +39,55 @@ interface SnackbarContent {
   text: string
 }
 
+interface ResultItem {
+  id: string,
+  notes: number[]
+}
+
 const PIANO_SELECT_MIN = MidiNumbers.fromNote('c4');
 const PIANO_SELECT_MAX = MidiNumbers.fromNote('e6');
 // ['c', 'c#', 'd' ...] X ['major', 'minor', ...]
 const SCALE_OPTIONS = cartesianProduct(MidiUtils.PITCHES, Object.keys(MidiUtils.MODE_SEMITONE_STEPS))
   .map(([pitch, scaleType]) => ({ pitch, scaleType }))
-const SOUND_FONT = 'acoustic_grand_piano';
+const DEFAULT_NOTE_AMOUNT = 8;
+const DEFAULT_BPM = 120;
+const DEFAULT_INSTRUMENT_NAME: Soundfont.InstrumentName = 'acoustic_grand_piano';
 
 export default function NotesSection() {
 
+  const { instrument, setInstrumentName, setGain } = useContext(InstrumentContext);
   const theme = useTheme();
   const [openSnackbar, setOpenSnackbar] = useState<boolean>(false);
   const [snackbarContent, setSnackbarContent] = useState<SnackbarContent>({ severity: 'warning', text: '' });
-  const [noteAmount, setNoteAmount] = useState<number>(8);
-  const [noteCandidates, setNoteCandidates] = useState<number[]>([]);
   const [resultItems, setResultItems] = useState<ResultItem[]>([]);
-  const [audioContext, setAudioContext] = useState<AudioContext>(new AudioContext());
-  const [instrument, setInstrument] = useState<Soundfont.Player | null>(null);
 
-  useEffect(() => {
-    Soundfont.instrument(audioContext, SOUND_FONT).then(function (instrument) {
-      setInstrument(instrument);
-    })
-  }, [audioContext])
+  // -- generate --
+  const [noteAmount, setNoteAmount] = useState<number>(DEFAULT_NOTE_AMOUNT);
+  const [noteCandidates, setNoteCandidates] = useState<number[]>([]);
 
+  // -- playback --
+  const [bpm, setBpm] = useState(DEFAULT_BPM);
+  const playNotes = (notes: number[], callback?: Function) => {
+    if (!instrument) return;
+    instrument.stop();
+    const noteDuration = 60 / bpm;
+    instrument.schedule(
+      audioContext.currentTime,
+      notes.map((midiNum, i) => ({
+        time: i * noteDuration,
+        note: midiNum,
+      }))
+    )
+    if (callback) {
+      setTimeout(callback, 1000 * notes.length * noteDuration)
+    }
+  }
+
+  // -- handlers --
   const handleNoteSelectionChangedManual = (selectedNotes: number[]) => {
     setNoteCandidates(selectedNotes);
   }
+
   const handleNoteSelectionChangedScale = (e: React.SyntheticEvent<Element, Event>, value: string | null) => {
     if (!value) return
     const [pitch, scale] = value.split(' ')
@@ -89,6 +113,10 @@ export default function NotesSection() {
     setOpenSnackbar(true);
   }
 
+  const handleSnackbarClose = () => {
+    setOpenSnackbar(false);
+  }
+
   const handleGenerateClicked = () => {
     if (noteCandidates.length === 0) {
       openNewSnackbar('error', 'Select at least 1 candidate note');
@@ -96,10 +124,24 @@ export default function NotesSection() {
     }
     const notes: number[] = new Array(noteAmount).fill(0).map(() => sample(noteCandidates)!);
     setResultItems([{ id: getId(), notes }, ...resultItems]);  // front is newest
+    playNotes(notes);
   }
 
-  const handleSnackbarClose = () => {
-    setOpenSnackbar(false);
+  const handleBpmChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let n = parseInt(e.target.value);
+    if (n <= 0 || isNaN(n)) n = DEFAULT_BPM;
+    setBpm(n);
+  }
+
+  const handleGainChanged = (e: Event, value: number | number[]) => {
+    if (!setGain) return;
+    setGain(value as number);
+  }
+
+  const handleInstrumentNameSelectionChanged = (
+    e: React.SyntheticEvent<Element, Event>, value: Soundfont.InstrumentName | null) => {
+    if (setInstrumentName && value)
+      setInstrumentName(value);
   }
 
   return (
@@ -164,8 +206,56 @@ export default function NotesSection() {
       {/* result section */}
       {
         resultItems.length > 0 &&
-        <ResultList items={resultItems}
-          audioContext={audioContext} instrument={instrument} />
+        <Paper elevation={0} >
+          <Stack direction='column' divider={<Divider orientation='horizontal' />}>
+            <Box textAlign='center' py='1em'>
+              <Typography variant='h4' color='grey.700'>
+                Results
+              </Typography>
+            </Box>
+            <Accordion defaultExpanded={false} sx={{ border: 'none' }}>
+              <AccordionSummary expandIcon={<MdExpandMore size={30} />}>
+                <Stack direction='row' alignItems='center'>
+                  <AiTwotoneSetting />
+                  <Typography variant='subtitle1' ml='0.5em'>Playback Settings</Typography>
+                </Stack>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing='1em' alignItems='center'>
+                  <Grid item xs={12} md={3}>
+                    <TextField type='number' label='BPM' fullWidth
+                      value={bpm} onChange={handleBpmChanged}
+                      inputProps={{ step: 10 }} />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <Autocomplete options={SOUNTFONT_INSTRUMENT_NAMES as Soundfont.InstrumentName[]}
+                      onChange={handleInstrumentNameSelectionChanged}
+                      defaultValue={DEFAULT_INSTRUMENT_NAME}
+                      renderInput={(params) =>
+                        <TextField {...params} label='Instrument' />
+                      } />
+                  </Grid>
+                  <Grid item xs={12} md={3} alignItems='center'>
+                    <Stack spacing={2} direction="row" alignItems="center">
+                      <MdVolumeUp size={30} />
+                      <Slider min={0} max={10} step={1} defaultValue={5}
+                        onChange={handleGainChanged} />
+                    </Stack>
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+            {
+              resultItems.map((item) => (
+                <ResultListItem
+                  key={item.id}
+                  notes={item.notes}
+                  playNotes={playNotes}
+                />
+              ))
+            }
+          </Stack>
+        </Paper>
       }
 
       {/* snackbar for info / warning / error */}

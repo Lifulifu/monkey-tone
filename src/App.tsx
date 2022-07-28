@@ -3,10 +3,10 @@ import './App.css';
 import Navbar from './components/Navbar'
 
 import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
 import { colors, createTheme, ThemeProvider } from '@mui/material';
 
 import NotesSection from './components/NotesSection';
+import InstrumentProvider from './components/InstrumentProvider';
 
 const theme = createTheme({
   palette: {
@@ -22,7 +22,9 @@ function App() {
       <div className="App">
         <Navbar />
         <Container sx={{ py: '2em' }} maxWidth='md'>
-          <NotesSection />
+          <InstrumentProvider>
+            <NotesSection />
+          </InstrumentProvider>
         </Container>
       </div>
     </ThemeProvider>
