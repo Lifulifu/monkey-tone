@@ -81,6 +81,7 @@ export default function NotesSection() {
       playEndCallbackTimer.current = setTimeout(callback, 1000 * notes.length * noteDuration)
     }
   }
+
   const setItemIsPlaying = (targetId: string) => {
     setResultItems((resultItems) => resultItems.map(({ id, isPlaying, ...rest }) => {
       if (id === targetId)
@@ -89,6 +90,7 @@ export default function NotesSection() {
         return { id, isPlaying: false, ...rest };
     }))
   }
+
   const setItemsIsPlayingFalse = () => {
     setResultItems((resultItems) => resultItems.map(({ id, isPlaying, ...rest }) => {
       return { id, isPlaying: false, ...rest }
@@ -166,6 +168,10 @@ export default function NotesSection() {
     setItemIsPlaying(id);
     clearTimeout(playEndCallbackTimer.current);
     playNotes(notes, setItemsIsPlayingFalse);
+  }
+
+  const handleItemDelete = (targetId: string) => {
+    setResultItems((resultItems) => resultItems.filter(({ id }) => id !== targetId))
   }
 
   return (
@@ -265,8 +271,9 @@ export default function NotesSection() {
                 <ResultListItem
                   key={item.id}
                   notes={item.notes}
-                  onPlayStart={() => handleItemPlayStart(item.id, item.notes)}
                   isPlaying={item.isPlaying}
+                  onPlayStart={() => handleItemPlayStart(item.id, item.notes)}
+                  onDelete={() => handleItemDelete(item.id)}
                 />
               ))
             }
