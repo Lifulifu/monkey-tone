@@ -27,7 +27,7 @@ export default function ResultListItem({ notes, isPlaying, onPlayStart, onApplyB
       </IconButton>
       <IconButton size='large' sx={{ mr: '0.5em' }}
         onClick={() => onApplyBeats()}>
-        <FaDrum color={isPlaying ? 'green' : 'gray'} />
+        <FaDrum />
       </IconButton>
       <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
         <Score notes={notes} clef={'treble'} />

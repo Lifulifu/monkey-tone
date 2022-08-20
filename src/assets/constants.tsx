@@ -128,3 +128,43 @@ export const SOUNTFONT_INSTRUMENT_NAMES = [
   "woodblock",
   "xylophone"
 ]
+
+interface NoteDurationOption {
+  name: string,
+  imgUrl: string
+}
+
+export const NOTE_DURATION_OPTIONS = [
+  {
+    name: 'h.',
+    img: './assets/notes/dotted_half.png'
+  },
+  {
+    name: 'h',
+    img: './assets/notes/half.png'
+  },
+  {
+    name: 'q.',
+    img: './assets/notes/dotted_4th.png'
+  },
+  {
+    name: 'q',
+    img: './assets/notes/4th.png'
+  },
+  {
+    name: '8.',
+    img: './assets/notes/dotted_8th.png'
+  },
+  {
+    name: '8',
+    img: './assets/notes/8th.png'
+  },
+  {
+    name: '16.',
+    img: './assets/notes/dotted_16th.png'
+  },
+  {
+    name: '16',
+    img: './assets/notes/16th.png'
+  },
+]

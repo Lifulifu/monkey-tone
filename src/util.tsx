@@ -1,4 +1,4 @@
-import { Stave, StaveNote, Beam, Formatter, Renderer, Voice, Accidental } from 'vexflow'
+import { Stave, StaveNote, Beam, Formatter, Renderer, Voice, Accidental, Vex } from 'vexflow'
 
 interface Pitch {
   name: string,
@@ -25,7 +25,7 @@ export function cartesianProduct<T>(...allEntries: T[][]): T[][] {
   )
 }
 
-export type NoteDuration = 'q' | 'h' | '16' | '32';
+export type NoteDuration = 'q' | 'h' | '16' | '8';
 
 export interface Note {
   note: number,
@@ -43,10 +43,14 @@ class MidiUtils {
     diminished: [1, 2, 1, 2, 1, 2, 1, 2]
   }
   static NOTE_DURATIONS: { [k: string]: number } = {
+    'h.': 3,
     'h': 2,
+    'q.': 1.5,
     'q': 1,
-    '8': 1 / 4,
-    '16': 1 / 8
+    '8.': 3 / 4,
+    '8': 1 / 2,
+    '16.': 3 / 8,
+    '16': 1 / 4
   }
 
   static midiNumToPitch(n: number): Pitch {
@@ -85,7 +89,6 @@ class MidiUtils {
 
 }
 
-
 class ScoreUtils {
 
   static renderScore(
@@ -121,11 +124,14 @@ class ScoreUtils {
       const { name, octave } = MidiUtils.midiNumToPitch(note.note);
       const staveNote = new StaveNote({
         keys: [`${name}/${octave}`],
-        duration: note.duration,
+        duration: note.duration.replace('.', ''),
         auto_stem: true
       })
       if (name.endsWith('#')) {
         staveNote.addModifier(new Accidental('#'));
+      }
+      if (note.duration.endsWith('.')) {
+        staveNote.addModifier(new Vex.Flow.Dot());
       }
       return staveNote;
     })
@@ -138,6 +144,5 @@ class ScoreUtils {
   }
 
 }
-
 
 export { MidiUtils, ScoreUtils };

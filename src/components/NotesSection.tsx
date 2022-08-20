@@ -6,7 +6,7 @@ import ResultListItem from './ResultListItem';
 import { v4 as getId } from 'uuid';
 import sample from 'lodash/sample';
 import Soundfont from 'soundfont-player';
-import { SOUNTFONT_INSTRUMENT_NAMES } from '../assets/constants'
+import { SOUNTFONT_INSTRUMENT_NAMES, NOTE_DURATION_OPTIONS } from '../assets/constants'
 
 import Accordion from './CustomAccordion'
 import AccordionSummary from '@mui/material/AccordionSummary';
@@ -17,6 +17,7 @@ import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Checkbox from '@mui/material/Checkbox';
 import Divider from '@mui/material/Divider';
+import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
@@ -42,6 +43,12 @@ interface ResultItem {
   isPlaying: boolean
 }
 
+interface NoteDurationItem {
+  duration: string,
+  imgUrl: string,
+  checked: boolean
+}
+
 const PIANO_SELECT_MIN = MidiNumbers.fromNote('c4');
 const PIANO_SELECT_MAX = MidiNumbers.fromNote('e6');
 // ['c', 'c#', 'd' ...] X ['major', 'minor', ...]
@@ -50,6 +57,7 @@ const SCALE_OPTIONS = cartesianProduct(MidiUtils.PITCHES, Object.keys(MidiUtils.
 const DEFAULT_NOTE_AMOUNT = 8;
 const DEFAULT_BPM = 120;
 const DEFAULT_INSTRUMENT_NAME: Soundfont.InstrumentName = 'acoustic_grand_piano';
+const DEFAULT_NOTE_DURATION_CANDIDATE: Set<string> = new Set(['q.', 'q', '8']) as Set<string>;
 
 export default function NotesSection() {
 
@@ -57,6 +65,13 @@ export default function NotesSection() {
   const [openSnackbar, setOpenSnackbar] = useState<boolean>(false);
   const [snackbarContent, setSnackbarContent] = useState<SnackbarContent>({ severity: 'warning', text: '' });
   const [resultItems, setResultItems] = useState<ResultItem[]>([]);
+  const [noteDurationCandidates, setNoteDurationCandidates] = useState<NoteDurationItem[]>(
+    NOTE_DURATION_OPTIONS.map(({ name, img }) => ({
+      duration: name,
+      imgUrl: img,
+      checked: DEFAULT_NOTE_DURATION_CANDIDATE.has(name)
+    }))
+  );
 
   // -- generate --
   const [noteAmount, setNoteAmount] = useState<number>(DEFAULT_NOTE_AMOUNT);
@@ -186,10 +201,13 @@ export default function NotesSection() {
         return item;
 
       // apply random beats to the notes
+      const candidates = noteDurationCandidates
+        .filter(({ checked }) => checked)  // sample from only the checked ones
+        .map(({ duration }) => duration);
       const newNotes: Note[] = notes.map(({ note }) => {
         return {
           note,
-          duration: sample(Object.keys(MidiUtils.NOTE_DURATIONS)) as NoteDuration
+          duration: sample(candidates) as NoteDuration
         }
       })
 
@@ -199,6 +217,19 @@ export default function NotesSection() {
 
   const handleItemDelete = (targetId: string) => {
     setResultItems((resultItems) => resultItems.filter(({ id }) => id !== targetId))
+  }
+
+  const handleNoteDurationCandidateChange = (checked: boolean, duration: string) => {
+    setNoteDurationCandidates((ori) => ori.map((item) => {
+      if (item.duration === duration) {
+        return {
+          duration,
+          checked,
+          imgUrl: item.imgUrl
+        }
+      }
+      return item;
+    }))
   }
 
   return (
@@ -292,6 +323,33 @@ export default function NotesSection() {
                   </Grid>
                 </Grid>
               </AccordionDetails>
+            </Accordion>
+            <Accordion defaultExpanded={false} sx={{ border: 'none' }}>
+              <AccordionSummary expandIcon={<MdExpandMore size={30} />}>
+                <Stack direction='row' alignItems='center'>
+                  <AiTwotoneSetting />
+                  <Typography variant='subtitle1' ml='0.5em'>Beat Settings</Typography>
+                </Stack>
+              </AccordionSummary>
+              <AccordionDetails>
+                <FormGroup>
+                  <Grid container>
+                    {
+                      noteDurationCandidates.map(({ duration, imgUrl, checked }) => (
+                        <Grid item xs={2} md={1}>
+                          <FormControlLabel
+                            key={duration}
+                            onChange={(_, checked) => handleNoteDurationCandidateChange(checked, duration)}
+                            label={<img src={imgUrl} height='30px' />}
+                            labelPlacement='top'
+                            control={<Checkbox checked={checked} />} />
+                        </Grid>
+                      ))
+                    }
+                  </Grid>
+                </FormGroup>
+              </AccordionDetails>
+
             </Accordion>
             {
               resultItems.map((item) => (
