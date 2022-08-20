@@ -25,6 +25,13 @@ export function cartesianProduct<T>(...allEntries: T[][]): T[][] {
   )
 }
 
+export type NoteDuration = 'q' | 'h' | '16' | '32';
+
+export interface Note {
+  note: number,
+  duration: NoteDuration
+}
+
 class MidiUtils {
 
   static MAX_MIDI_NUM = 127;
@@ -34,6 +41,12 @@ class MidiUtils {
     major: [2, 2, 1, 2, 2, 2, 1],
     minor: [2, 1, 2, 2, 1, 2, 2],
     diminished: [1, 2, 1, 2, 1, 2, 1, 2]
+  }
+  static NOTE_DURATIONS: { [k: string]: number } = {
+    'h': 2,
+    'q': 1,
+    '8': 1 / 4,
+    '16': 1 / 8
   }
 
   static midiNumToPitch(n: number): Pitch {
@@ -77,14 +90,14 @@ class ScoreUtils {
 
   static renderScore(
     container: HTMLDivElement,
-    midiNums: number[],
+    notes: Note[],
     widthPerNote: number,
     clef?: string
   ) {
     const MIN_SCORE_WIDTH = 100;
     const PADDING_WIDTH = 5;
 
-    const totalWidth = Math.max(MIN_SCORE_WIDTH, widthPerNote * midiNums.length + 2 * PADDING_WIDTH); const renderer = new Renderer(container, Renderer.Backends.SVG);
+    const totalWidth = Math.max(MIN_SCORE_WIDTH, widthPerNote * notes.length + 2 * PADDING_WIDTH); const renderer = new Renderer(container, Renderer.Backends.SVG);
     const context = renderer.getContext();
     const staveWidth = totalWidth - 2 * PADDING_WIDTH;
     const stave = new Stave(PADDING_WIDTH, 0, staveWidth);
@@ -100,25 +113,26 @@ class ScoreUtils {
     renderer.resize(totalWidth, newHeight);
     stave.setContext(context).draw();
 
-    if (midiNums.length === 0) // draw stave but no notes
+    if (notes.length === 0) // draw stave but no notes
       return;
 
     // draw notes
-    const notes = midiNums.map((midiNum) => {
-      const { name, octave } = MidiUtils.midiNumToPitch(midiNum);
-      const note = new StaveNote({
+    const staveNotes = notes.map((note) => {
+      const { name, octave } = MidiUtils.midiNumToPitch(note.note);
+      const staveNote = new StaveNote({
         keys: [`${name}/${octave}`],
-        duration: 'q',
+        duration: note.duration,
         auto_stem: true
       })
       if (name.endsWith('#')) {
-        note.addModifier(new Accidental('#'));
+        staveNote.addModifier(new Accidental('#'));
       }
-      return note;
+      return staveNote;
     })
 
-    const voice = new Voice({ num_beats: midiNums.length, beat_value: 4 });
-    voice.addTickables(notes);
+    const voice = new Voice({ num_beats: notes.length, beat_value: 4 });
+    voice.setStrict(false);
+    voice.addTickables(staveNotes);
     new Formatter().joinVoices([voice]).format([voice], staveWidth - noteStartX - PADDING_WIDTH);
     voice.draw(context, stave);
   }

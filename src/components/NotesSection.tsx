@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext } from 'react'
 import PianoSelect from './PianoSelect';
-import { MidiUtils, cartesianProduct } from '../util';
+import { MidiUtils, cartesianProduct, Note, NoteDuration } from '../util';
 import { InstrumentContext, audioContext } from './InstrumentProvider';
 import ResultListItem from './ResultListItem';
 import { v4 as getId } from 'uuid';
@@ -25,7 +25,6 @@ import Slider from '@mui/material/Slider'
 import Snackbar from '@mui/material/Snackbar';
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import useTheme from '@mui/material/styles/useTheme';
 import { AiTwotoneSetting } from 'react-icons/ai'
 import { BsFillDice5Fill } from 'react-icons/bs'
 import { MdExpandMore, MdVolumeUp } from 'react-icons/md'
@@ -39,7 +38,7 @@ interface SnackbarContent {
 
 interface ResultItem {
   id: string,
-  notes: number[],
+  notes: Note[],
   isPlaying: boolean
 }
 
@@ -66,17 +65,22 @@ export default function NotesSection() {
   // -- playback --
   const [bpm, setBpm] = useState(DEFAULT_BPM);
   const playEndCallbackTimer = useRef<number>(0);
-  const playNotes = (notes: number[], callback?: Function) => {
+  const playNotes = (notes: Note[], callback?: Function) => {
     if (!instrument) return;
     instrument.stop();
+
     const noteDuration = 60 / bpm;
-    instrument.schedule(
-      audioContext.currentTime,
-      notes.map((midiNum, i) => ({
-        time: i * noteDuration,
-        note: midiNum,
-      }))
-    )
+    const scheduledNotes = [];
+    let currTime = 0;
+    for (let i = 0; i < notes.length; i++) {
+      scheduledNotes.push({
+        time: currTime,
+        note: notes[i].note
+      })
+      currTime += noteDuration * MidiUtils.NOTE_DURATIONS[notes[i].duration];
+    }
+    instrument.schedule(audioContext.currentTime, scheduledNotes)
+
     if (callback) {
       playEndCallbackTimer.current = setTimeout(callback, 1000 * notes.length * noteDuration)
     }
@@ -136,7 +140,12 @@ export default function NotesSection() {
       openNewSnackbar('error', 'Select at least 1 candidate note');
       return;
     }
-    const notes: number[] = new Array(noteAmount).fill(0).map(() => sample(noteCandidates)!);
+    const notes: Note[] = new Array(noteAmount).fill(0).map(() => {
+      return {
+        note: sample(noteCandidates)!,
+        duration: 'q'
+      }
+    });
     const itemId = getId();
 
     setResultItems([
@@ -164,10 +173,28 @@ export default function NotesSection() {
       setInstrumentName(value);
   }
 
-  const handleItemPlayStart = (id: string, notes: number[]) => {
+  const handleItemPlayStart = (id: string, notes: Note[]) => {
     setItemIsPlaying(id);
     clearTimeout(playEndCallbackTimer.current);
     playNotes(notes, setItemsIsPlayingFalse);
+  }
+
+  const handleItemApplyBeats = (targetId: string) => {
+    setResultItems((resultItems) => resultItems.map((item) => {
+      const { id, notes, ...rest } = item;
+      if (id !== targetId)
+        return item;
+
+      // apply random beats to the notes
+      const newNotes: Note[] = notes.map(({ note }) => {
+        return {
+          note,
+          duration: sample(Object.keys(MidiUtils.NOTE_DURATIONS)) as NoteDuration
+        }
+      })
+
+      return { id, notes: newNotes, ...rest }
+    }))
   }
 
   const handleItemDelete = (targetId: string) => {
@@ -273,6 +300,7 @@ export default function NotesSection() {
                   notes={item.notes}
                   isPlaying={item.isPlaying}
                   onPlayStart={() => handleItemPlayStart(item.id, item.notes)}
+                  onApplyBeats={() => handleItemApplyBeats(item.id)}
                   onDelete={() => handleItemDelete(item.id)}
                 />
               ))

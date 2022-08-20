@@ -2,11 +2,11 @@
 import React, { useRef, useEffect, useState } from 'react'
 import VexFlow from 'vexflow'
 
-import { ScoreUtils } from '../util'
+import { ScoreUtils, Note, NoteDuration } from '../util'
 
 
 interface ScoreProps {
-  notes: number[],
+  notes: Note[],
   widthPerNote?: number,
   clef?: string,
 }
@@ -22,7 +22,7 @@ export default function Score({
       if (container.current)
         container.current!.innerHTML = '';
     }
-  }, [])
+  }, [notes])
 
   return <div ref={container} />
 }
