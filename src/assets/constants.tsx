@@ -1,3 +1,6 @@
+import Soundfont from 'soundfont-player';
+const { MidiNumbers } = require('react-piano');
+
 export const SOUNTFONT_INSTRUMENT_NAMES = [
   "accordion",
   "acoustic_bass",
@@ -168,3 +171,30 @@ export const NOTE_DURATION_OPTIONS = [
     img: './assets/notes/16th.png'
   },
 ]
+
+export const DEFAULT_SETTING: {
+  // Note generation setting
+  noteAmount: number,
+  noteCandidates: number[],
+  pianoSelectMin: number,
+  pianoSelectMax: number,
+
+  // Playback setting
+  playbackBpm: number,
+  playbackInstrumentName: Soundfont.InstrumentName,
+  playbackGain: number,
+
+  // Beat setting
+  noteDurationCondidates: string[],
+} = {
+  noteAmount: 8,
+  noteCandidates: [],
+  pianoSelectMin: MidiNumbers.fromNote('c4'),
+  pianoSelectMax: MidiNumbers.fromNote('e6'),
+
+  playbackBpm: 120,
+  playbackInstrumentName: 'acoustic_grand_piano',
+  playbackGain: 5,
+
+  noteDurationCondidates: ['q.', 'q', '8']
+}

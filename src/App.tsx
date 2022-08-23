@@ -5,7 +5,7 @@ import Navbar from './components/Navbar'
 import Container from '@mui/material/Container';
 import { colors, createTheme, ThemeProvider } from '@mui/material';
 
-import NotesSection from './components/NotesSection';
+import NoteGeneration from './components/NoteGeneration';
 import InstrumentProvider from './components/InstrumentProvider';
 
 const theme = createTheme({
@@ -28,7 +28,7 @@ function App() {
         <Navbar />
         <Container sx={{ py: '2em' }} maxWidth='md'>
           <InstrumentProvider>
-            <NotesSection />
+            <NoteGeneration />
           </InstrumentProvider>
         </Container>
       </div>

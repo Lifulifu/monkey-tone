@@ -8,5 +8,4 @@ export default styled((props: AccordionProps) => (
     display: 'none',
   },
   borderBottom: `1px solid ${theme.palette.divider}`,
-  borderTop: `1px solid ${theme.palette.divider}`,
 }));
