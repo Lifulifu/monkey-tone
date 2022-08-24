@@ -1,8 +1,7 @@
 // credits: https://github.com/markacola/react-vexflow/blob/master/src/index.js
-import React, { useRef, useEffect, useState } from 'react'
-import VexFlow from 'vexflow'
+import React, { useRef, useEffect } from 'react'
 
-import { ScoreUtils, Note, NoteDuration } from '../util'
+import { ScoreUtils, Note } from '../util'
 
 
 interface ScoreProps {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import PianoSelect from './PianoSelect';
-import { MidiUtils, cartesianProduct, Note } from '../util';
+import { MidiUtils, cartesianProduct } from '../util';
 import { DEFAULT_SETTING } from '../assets/constants';
 
 import Accordion from './CustomAccordion'

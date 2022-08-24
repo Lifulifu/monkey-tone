@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext } from 'react'
+import React, { useState, useRef, useContext } from 'react'
 import NoteGenerationSettingForm from './NoteGenerationSettingForm';
 import PlaybackSettingForm from './PlaybackSettingForm';
 import BeatSettingForm from './BeatSettingForm';
@@ -171,6 +171,7 @@ export default function NotesSection() {
             Generate
           </Button>
         </Stack>
+
       </Paper>
 
       {/* result section */}

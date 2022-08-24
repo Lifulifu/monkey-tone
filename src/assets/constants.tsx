@@ -132,11 +132,6 @@ export const SOUNTFONT_INSTRUMENT_NAMES = [
   "xylophone"
 ]
 
-interface NoteDurationOption {
-  name: string,
-  imgUrl: string
-}
-
 export const NOTE_DURATION_OPTIONS = [
   {
     name: 'h.',
