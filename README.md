@@ -8,7 +8,7 @@ Random musical note generator for your inspiration, with sheet music and midi pl
 
 Live demo: https://monkey-tone.netlify.app/
 
-## Dependancies
+## Dependencies
 - react + material UI
 - Piano key selection: Modified version of [react-piano](https://github.com/kevinsqi/react-piano)
 - Sheet music rendering: [react-vexflow](https://www.npmjs.com/package/react-vexflow)
